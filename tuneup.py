@@ -5,17 +5,33 @@
 Use the timeit and cProfile libraries to find bad code.
 """
 
-__author__ = "???"
+__author__ = "Paul Racisz + David R. + Devon Middleton"
 
 import cProfile
 import pstats
 import functools
+import timeit
+import io
 
 
 def profile(func):
     """A cProfile decorator function that can be used to
     measure performance.
     """
+    # SRC => https://youtu.be/8qEnExGLZfY
+    def inner(*args, **kwargs):
+
+        pr = cProfile.Profile()
+        pr.enable()
+        retval = func(*args, **kwargs)
+        pr.disable()
+        s = io.StringIO()
+        sortby = 'cumulative'
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        ps.print_stats()
+        print(s.getvalue())
+        return retval
+    return inner
     # Be sure to review the lesson material on decorators.
     # You need to understand how they are constructed and used.
     raise NotImplementedError("Complete this decorator function")
@@ -36,6 +52,7 @@ def is_duplicate(title, movies):
     return False
 
 
+@profile
 def find_duplicate_movies(src):
     """Returns a list of duplicate movies from a src list."""
     movies = read_movies(src)
@@ -49,8 +66,12 @@ def find_duplicate_movies(src):
 
 def timeit_helper():
     """Part A: Obtain some profiling measurements using timeit."""
-    # YOUR CODE GOES HERE
-    pass
+    t = timeit.Timer('main()', 'print("testing for main")')
+    timeit_result = t.repeat(repeat=7, number=3)
+    average_list = [number / 3 for number in timeit_result]
+    result = min(average_list)
+
+    return print("Best time across 7 repeats of 5 runs per repeat: {} sec".format(result))
 
 
 def main():
@@ -62,3 +83,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+timeit_helper()
